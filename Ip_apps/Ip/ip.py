@@ -1,19 +1,19 @@
-from flask import Flask, request, json
+import json
+
+from flask import Flask, request
 
 app = Flask(__name__)
 
 
 @app.route('/', methods=['POST'])
 def ip():
-    if hasattr(request.headers, 'X-Real-IP'):
-        client_ip = request.headers['X-Real-IP']
-    else:
-        client_ip = dict()
+    client_ip = request.headers.get('X-Real-IP')
     if request.data:
         body = request.get_json()
     else:
         body = dict()
-    body['client_ip'] = client_ip
+    if client_ip:
+        body['client_ip'] = client_ip
     return json.dumps(body)
 
 
