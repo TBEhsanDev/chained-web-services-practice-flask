@@ -19,6 +19,7 @@ packaging==21.3
 pluggy==1.0.0
 py==1.11.0
 Pygments==2.13.0
+pymongo==2.8
 pyparsing==3.0.9
 PySocks==1.7.1
 pytest==7.1.2

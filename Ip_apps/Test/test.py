@@ -1,17 +1,19 @@
 import json
 import threading
+import time
 
+import pymongo
 import requests
 
 lock = threading.Lock()
-json_data = {
+data = {
     'student': {'age': 32, 'name': 'ali', 'grades': [14, 18]}
 }
 client_ip = {'client_ip': '127.0.0.1'}
-resp_test_with_json = json_data | client_ip
+resp_test_with_json = data | client_ip
 resp_test_empty_json = client_ip
 resp_test_empty_body = client_ip
-req_num = 2
+req_num = 1
 
 
 def check_logs_content(start, end):
@@ -20,20 +22,32 @@ def check_logs_content(start, end):
             line = log.readlines()[i]
             line_dict = json.loads(line)
             del line_dict['time']
-            assert line_dict == json_data
+            assert line_dict == data
+
+
+def check_mongodb(col, data, log_lines_num_in_db_before_req):
+    json_data = json.dumps(data)
+    items = col.find()
+    for item in items[log_lines_num_in_db_before_req + 1:]:
+        assert col.count() == log_lines_num_in_db_before_req + req_num
+        assert data["student"] == item["student"]
 
 
 def test_with_json():
+    client = pymongo.MongoClient('mongodb://localhost:27017/')
+    db = client['ip_db']
+    col = db['ip_collection']
+    log_lines_num_in_db_before_req = col.count()
+    log_lines_num_before_req = sum(1 for line in open('../Log/log.jsonl'))
     resp_200 = 0
     resp_502 = 0
     check = [resp_200, resp_502]
     th = list()
-    log_lines_num_before_req = sum(1 for line in open('../Log/log.jsonl'))
 
     def with_json():
         lock.acquire()
         try:
-            resp = requests.post(url="http://127.0.0.1/api/", json=json_data)
+            resp = requests.post(url="http://127.0.0.1/api/", json=data)
             assert resp.status_code == 200
             assert resp.json() == resp_test_with_json
             check[0] += 1
@@ -51,6 +65,8 @@ def test_with_json():
     log_lines_num_after_req = sum(1 for line in open('../Log/log.jsonl'))
     if (check[0] == req_num) and (log_lines_num_after_req == log_lines_num_before_req + req_num):
         check_logs_content(log_lines_num_before_req, log_lines_num_after_req)
+        time.sleep(5)
+        check_mongodb(col, data, log_lines_num_in_db_before_req)
 
 
 def test_empty_json():
