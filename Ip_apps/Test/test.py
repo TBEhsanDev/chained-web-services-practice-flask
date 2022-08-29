@@ -1,11 +1,16 @@
 import json
 import threading
 import time
+from pathlib import Path
 
 import pymongo
 import redis
 import requests
 
+from ..Log.log import log_file_path
+
+log_file = Path(log_file_path)
+log_file.touch(exist_ok=True)
 lock = threading.Lock()
 r = redis.Redis()
 data = {
@@ -19,7 +24,7 @@ req_num = 200
 
 
 def check_logs_content(start, end):
-    with open('../Log/log.jsonl', mode='r') as log:
+    with open(log_file_path, mode='r') as log:
         lines = log.readlines()
         for line in lines[start:end]:
             line = json.loads(line)
@@ -40,7 +45,7 @@ def test_with_json():
     db = client['ip_db']
     col = db['ip_collection']
     log_lines_num_in_db_before_req = col.count()
-    log_lines_num_before_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_before_req = sum(1 for line in open(log_file_path))
     resp_200 = 0
     resp_429 = 0
     resp_502 = 0
@@ -70,7 +75,7 @@ def test_with_json():
         th.append(t)
     for t in th:
         t.join()
-    log_lines_num_after_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_after_req = sum(1 for line in open(log_file_path))
     if (check[0] == 100) and (log_lines_num_after_req == log_lines_num_before_req + 100):
         check_logs_content(log_lines_num_before_req, log_lines_num_after_req)
         time.sleep(5)
@@ -83,7 +88,7 @@ def test_empty_json():
     resp_502 = 0
     check = [resp_200, resp_502]
     th = list()
-    log_lines_num_before_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_before_req = sum(1 for line in open(log_file_path))
 
     def empty_json():
         lock.acquire()
@@ -107,7 +112,7 @@ def test_empty_json():
         th.append(t)
     for t in th:
         t.join()
-    log_lines_num_after_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_after_req = sum(1 for line in open(log_file_path))
     if (check[0] == 100):
         assert log_lines_num_after_req == log_lines_num_before_req + 100
     r.delete('127.0.0.1')
@@ -118,7 +123,7 @@ def test_empty_body():
     resp_502 = 0
     check = [resp_200, resp_502]
     th = list()
-    log_lines_num_before_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_before_req = sum(1 for line in open(log_file_path))
 
     def empty_body():
         lock.acquire()
@@ -142,7 +147,7 @@ def test_empty_body():
         th.append(t)
     for t in th:
         t.join()
-    log_lines_num_after_req = sum(1 for line in open('../Log/log.jsonl'))
+    log_lines_num_after_req = sum(1 for line in open(log_file_path))
     if (check[0] == req_num):
         assert log_lines_num_after_req == log_lines_num_before_req + 100
     r.delete('127.0.0.1')
