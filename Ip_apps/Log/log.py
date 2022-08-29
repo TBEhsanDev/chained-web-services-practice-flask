@@ -1,14 +1,18 @@
 import datetime
+import os.path
 
 import jsonlines
 import requests
 from flask import Flask, request
 
+from .. import Base_dir
+
 app = Flask(__name__)
+log_file_path = os.path.join(Base_dir, 'Log/log.jsonl')
 
 
 def save_log(body):
-    with jsonlines.open('log.jsonl', mode='a') as log:
+    with jsonlines.open(log_file_path, mode='a') as log:
         log.write(body)
 
 

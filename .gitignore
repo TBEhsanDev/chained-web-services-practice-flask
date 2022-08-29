@@ -1,6 +1,7 @@
 /venv
 .idea
-Ip_apps/Test/.coverage
-Ip_apps/Test/.pytest_cache
+.coverage
+.pytest_cache
 __pycache__
 *.jsonl
+.pdf
