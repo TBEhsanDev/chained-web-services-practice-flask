@@ -1,4 +1,4 @@
-# Ip_Project_Flask<br/>
+# chained-web-services-practice-flask<br/>
 ‫
 
 
@@ -24,3 +24,7 @@ data as log in file and return request body in addition request ip.
 ## instruction for run and test:
 > first run bash script  **./setup.sh** </span>.this script create venv ,activate it and install necessary packages on venv.
  for run servers ,run bash script  **./run.sh**.for test project run bash script **./test.sh**.
+## instruction for dockerize app:
+>first **docker build -t ip .** to create a image that named ip.then **docker run -it --name ip ip**to create a container that named ip.this run our 
+ our app.**docker ps -a** list the containers.then in another terminal tab run **docker exec -it 'container_id' /bin/bash** to create bash terminal in
+ that container .then we can request in that bash.
