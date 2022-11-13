@@ -34,4 +34,4 @@ def log():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=6000)
+    app.run(host='127.0.0.1', port=6000)

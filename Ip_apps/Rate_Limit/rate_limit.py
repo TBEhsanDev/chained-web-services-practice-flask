@@ -8,7 +8,7 @@ from flask import Flask, request
 app = Flask(__name__)
 req_num = 100
 lock = threading.Lock()
-r = redis.Redis()
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 
 @app.route('/', methods=['POST'])
@@ -18,7 +18,6 @@ def rate_limit():
     lock.acquire()
     if not r.exists(ip):
         r.set(ip, req_num)
-    print(r.get(ip))
     if r.get(ip) == b'0':
         lock.release()
         return json.dumps('too many requests'), 429
